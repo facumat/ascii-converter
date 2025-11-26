@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art Converter</title>
+    
+    <!-- External Stylesheet - Edit styles.css to customize appearance -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- React (for UI components) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Root element - React app mounts here -->
+    <div id="root"></div>
+
+    <!-- ============================================
+         REACT APPLICATION
+         ============================================ -->
+    <script type="text/babel">
+        const { useState, useRef } = React;
+
+        const ASCIIConverter = () => {
+            // ============================================
+            // STATE MANAGEMENT
+            // ============================================
+            const [asciiArt, setAsciiArt] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [width, setWidth] = useState(100);
+            const [height, setHeight] = useState(0);
+            const [charset, setCharset] = useState('detailed');
+            const [contrast, setContrast] = useState(1.5);
+            const [invert, setInvert] = useState(false);
+            const [fontSize, setFontSize] = useState(8);
+            const [zoom, setZoom] = useState(100);
+            const [textColor, setTextColor] = useState('#00ff00');
+            const [backgroundColor, setBackgroundColor] = useState('#000000');
+            const [transparentBackground, setTransparentBackground] = useState(false);
+            const [originalImage, setOriginalImage] = useState(null);
+            
+            const canvasRef = useRef(null);
+            const fileInputRef = useRef(null);
+            const outputRef = useRef(null);
+
+            // ============================================
+            // CHARACTER SETS
+            // ============================================
+            const charSets = {
+                detailed: ['@', '#', 'S', '%', '?', '*', '+', ';', ':', ',', '.', ' '],
+                simple: ['@', '#', '*', '+', '=', '-', ':', '.', ' '],
+                unicode: ['█', '▓', '▒', '░', ':', '.', ' '],
+                extended: ['#', '*', '+', '=', '-', ':', '.', ' ']
+            };
+
+            // ============================================
+            // IMAGE PROCESSING
+            // ============================================
+            const processImage = (file) => {
+                setLoading(true);
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        setOriginalImage(img);
+                        convertToASCII(img);
+                    };
+                    img.src = e.target.result;
+                };
+
+                reader.readAsDataURL(file);
+            };
+
+            const rerunConversion = () => {
+                if (originalImage) {
+                    setLoading(true);
+                    setTimeout(() => {
+                        convertToASCII(originalImage);
+                    }, 100);
+                }
+            };
+
+            const convertToASCII = (img) => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+
+                const aspectRatio = img.height / img.width;
+                let newHeight;
+                
+                if (height === 0) {
+                    newHeight = Math.floor(aspectRatio * width * 0.55);
+                } else {
+                    newHeight = height;
+                }
+
+                canvas.width = width;
+                canvas.height = newHeight;
+
+                ctx.filter = `contrast(${contrast * 100}%)`;
+                ctx.drawImage(img, 0, 0, width, newHeight);
+
+                const imageData = ctx.getImageData(0, 0, width, newHeight);
+                const pixels = imageData.data;
+
+                let ascii = '';
+                const chars = invert ? [...charSets[charset]].reverse() : charSets[charset];
+
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    
+                    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                    const charIndex = Math.floor((gray / 255) * (chars.length - 1));
+                    ascii += chars[charIndex];
+                    
+                    if ((i / 4 + 1) % width === 0) {
+                        ascii += '\n';
+                    }
+                }
+
+                setAsciiArt(ascii);
+                setLoading(false);
+            };
+
+            // ============================================
+            // FILE HANDLERS
+            // ============================================
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file) processImage(file);
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    processImage(file);
+                }
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+            };
+
+            // ============================================
+            // EXPORT FUNCTIONS
+            // ============================================
+            const downloadASCII = () => {
+                const blob = new Blob([asciiArt], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ascii-art.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const downloadAsPNG = () => {
+                const tempCanvas = document.createElement('canvas');
+                const ctx = tempCanvas.getContext('2d');
+                
+                const lines = asciiArt.split('\n');
+                const maxLineLength = Math.max(...lines.map(line => line.length));
+                const charWidth = fontSize * 0.6;
+                const lineHeight = fontSize;
+                
+                tempCanvas.width = maxLineLength * charWidth + 40;
+                tempCanvas.height = lines.length * lineHeight + 40;
+                
+                if (!transparentBackground) {
+                    ctx.fillStyle = backgroundColor;
+                    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                }
+                
+                ctx.fillStyle = textColor;
+                ctx.font = `${fontSize}px monospace`;
+                ctx.textBaseline = 'top';
+                
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, 20, 20 + i * lineHeight);
+                });
+                
+                tempCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'ascii-art.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }, 'image/png');
+            };
+
+            const downloadAsSVG = () => {
+                const lines = asciiArt.split('\n');
+                const maxLineLength = Math.max(...lines.map(line => line.length));
+                const charWidth = fontSize * 0.6;
+                const lineHeight = fontSize * 1.2;
+                
+                const svgWidth = maxLineLength * charWidth + 40;
+                const svgHeight = lines.length * lineHeight + 40;
+                
+                let svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">`;
+                
+                if (!transparentBackground) {
+                    svgContent += `
+    <rect width="100%" height="100%" fill="${backgroundColor}"/>`;
+                }
+                
+                svgContent += `
+    <text font-family="monospace" font-size="${fontSize}" fill="${textColor}" xml:space="preserve">`;
+                
+                lines.forEach((line, i) => {
+                    const y = 20 + (i + 1) * lineHeight;
+                    svgContent += `\n        <tspan x="20" y="${y}">${line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</tspan>`;
+                });
+                
+                svgContent += '\n    </text>\n</svg>';
+                
+                const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ascii-art.svg';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const copyToClipboard = () => {
+                navigator.clipboard.writeText(asciiArt);
+                alert('ASCII art copied to clipboard!');
+            };
+
+            // ============================================
+            // ZOOM CONTROLS
+            // ============================================
+            const zoomIn = () => setZoom(prev => Math.min(prev + 25, 500));
+            const zoomOut = () => setZoom(prev => Math.max(prev - 25, 25));
+            const fitToView = () => setZoom(100);
+
+            // ============================================
+            // COLOR PRESETS
+            // ============================================
+            const applyPreset = (preset) => {
+                const presets = {
+                    matrix: { text: '#00ff00', bg: '#000000', transparent: false },
+                    classic: { text: '#ffffff', bg: '#000000', transparent: false },
+                    retro: { text: '#00ffff', bg: '#000080', transparent: false },
+                    print: { text: '#000000', bg: '#ffffff', transparent: false },
+                    neon: { text: '#ff00ff', bg: '#000000', transparent: false },
+                    transparent: { text: '#ffffff', bg: '#000000', transparent: true }
+                };
+                
+                const p = presets[preset];
+                setTextColor(p.text);
+                setBackgroundColor(p.bg);
+                setTransparentBackground(p.transparent);
+            };
+
+            // ============================================
+            // RENDER
+            // ============================================
+            return (
+                <div className="app-container">
+                    {/* HEADER 
+                    <header className="app-header">
+                        <h1 className="app-title">ASCII Art Converter</h1>
+                        <p className="app-subtitle">Convert your images into beautiful ASCII/Unicode art</p>
+                    </header>
+                    */}
+
+                    {/* MAIN CONTENT */}
+                    <div className="main-grid">
+                        {/* SETTINGS PANEL */}
+                        <aside className="panel">
+
+                            {/* Upload Area */}
+                            <div
+                                className="upload-area"
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
+                                onClick={() => fileInputRef.current.click()}
+                            >
+                                <svg className="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p className="upload-text">Click to upload or drag and drop</p>
+                                <p className="upload-subtext">PNG, JPG, GIF up to 10MB</p>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="upload-input"
+                                />
+                            </div>
+
+                            {/* Width Control */}
+                            <div className="control-group">
+                                <label className="control-label">
+                                    Width: {width} characters
+                                </label>
+                                <input
+                                    type="range"
+                                    min="40"
+                                    max="1000"
+                                    value={width}
+                                    onChange={(e) => setWidth(parseInt(e.target.value))}
+                                    className="slider"
+                                />
+                            </div>
+
+                            {/* Height Control */}
+                            <div className="control-group">
+                                <label className="control-label">
+                                    Height: {height === 0 ? 'Auto' : `${height} characters`}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1000"
+                                    value={height}
+                                    onChange={(e) => setHeight(parseInt(e.target.value))}
+                                    className="slider"
+                                />
+                                <p className="helper-text">Set to 0 for automatic height (maintains aspect ratio)</p>
+                            </div>
+
+                            {/* Character Set */}
+                            <div className="control-group">
+                                <label className="control-label">Character Set</label>
+                                <select
+                                    value={charset}
+                                    onChange={(e) => setCharset(e.target.value)}
+                                    className="select"
+                                >
+                                    <option value="detailed">Detailed (@#S%?*+;:,.)</option>
+                                    <option value="simple">Simple (@#*+=-:.)</option>
+                                    <option value="unicode">Unicode (█▓▒░:.)</option>
+                                    <option value="extended">Extended (#*+=-:.)</option>
+                                </select>
+                            </div>
+
+                            {/* Contrast Control */}
+                            <div className="control-group">
+                                <label className="control-label">
+                                    Contrast: {contrast.toFixed(1)}x
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.5"
+                                    max="3"
+                                    step="0.1"
+                                    value={contrast}
+                                    onChange={(e) => setContrast(parseFloat(e.target.value))}
+                                    className="slider"
+                                />
+                            </div>
+
+                            {/* Font Size Control */}
+                            <div className="control-group">
+                                <label className="control-label">
+                                    Display Font Size: {fontSize}px
+                                </label>
+                                <input
+                                    type="range"
+                                    min="4"
+                                    max="16"
+                                    value={fontSize}
+                                    onChange={(e) => setFontSize(parseInt(e.target.value))}
+                                    className="slider"
+                                />
+                            </div>
+
+                            <div className="divider"></div>
+
+                            {/* Color Controls */}
+                            <div className="panel-section">
+                                <h3 className="section-title">Output Colors</h3>
+                                
+                                {/* Text Color */}
+                                <div className="control-group">
+                                    <label className="control-label">Text Color</label>
+                                    <div className="color-picker-group">
+                                        <input
+                                            type="color"
+                                            value={textColor}
+                                            onChange={(e) => setTextColor(e.target.value)}
+                                            className="color-picker"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={textColor}
+                                            onChange={(e) => setTextColor(e.target.value)}
+                                            className="text-input color-input"
+                                            placeholder="#00ff00"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Background Color */}
+                                <div className="control-group">
+                                    <label className="control-label">Background Color</label>
+                                    <div className="color-picker-group">
+                                        <input
+                                            type="color"
+                                            value={backgroundColor}
+                                            onChange={(e) => setBackgroundColor(e.target.value)}
+                                            disabled={transparentBackground}
+                                            className="color-picker"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={backgroundColor}
+                                            onChange={(e) => setBackgroundColor(e.target.value)}
+                                            disabled={transparentBackground}
+                                            className="text-input color-input"
+                                            placeholder="#000000"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Transparent Background */}
+                                <div className="control-group">
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={transparentBackground}
+                                            onChange={(e) => setTransparentBackground(e.target.checked)}
+                                            className="checkbox"
+                                            id="transparent"
+                                        />
+                                        <span className="checkbox-label">Transparent background</span>
+                                    </label>
+                                </div>
+
+                            </div>
+
+                            <div className="divider"></div>
+
+                            {/* Invert Toggle */}
+                            <div className="control-group">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={invert}
+                                        onChange={(e) => setInvert(e.target.checked)}
+                                        className="checkbox"
+                                        id="invert"
+                                    />
+                                    <span className="checkbox-label">Invert (for light backgrounds)</span>
+                                </label>
+                            </div>
+
+                            {/* Action Buttons */}
+                            {originalImage && (
+                                <div className="btn-group">
+                                    <button
+                                        onClick={rerunConversion}
+                                        disabled={loading}
+                                        className="btn btn-accent"
+                                    >
+                                        {loading ? 'Converting...' : '↻  Rerun Conversion'}
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {asciiArt && (
+                                <div className="btn-group mt-3">
+                                    <button onClick={downloadASCII} className="btn btn-primary">
+                                        📄  Download as .txt
+                                    </button>
+                                    <button onClick={downloadAsPNG} className="btn btn-primary">
+                                        🖼️  Download as .png
+                                    </button>
+                                    <button onClick={downloadAsSVG} className="btn btn-primary">
+                                        ⚡  Download as .svg
+                                    </button>
+                                    <button onClick={copyToClipboard} className="btn btn-ghost">
+                                        📋  Copy to Clipboard
+                                    </button>
+                                </div>
+                            )}
+                        </aside>
+
+                        {/* OUTPUT PANEL */}
+                        <main className="panel">
+                            <div className="output-header">
+                                <h2 className="panel-header" style={{marginBottom: 0}}>Output</h2>
+                                {asciiArt && (
+                                    <div className="zoom-controls">
+                                        <button onClick={zoomOut} className="zoom-btn" title="Zoom Out">−</button>
+                                        <span className="zoom-value">{zoom}%</span>
+                                        <button onClick={zoomIn} className="zoom-btn" title="Zoom In">+</button>
+                                        <button onClick={fitToView} className="btn btn-sm" title="Fit to View">Fit</button>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {loading && (
+                                <div className="loading-container">
+                                    <div className="text-center">
+                                        <div className="loading-spinner"></div>
+                                        <p className="loading-text">Converting image...</p>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {!loading && asciiArt && (
+                                <div
+                                    className={`output-display ${transparentBackground ? 'transparent-bg' : ''}`}
+                                    ref={outputRef}
+                                    style={{
+                                        backgroundColor: transparentBackground ? 'transparent' : backgroundColor
+                                    }}
+                                >
+                                    <pre
+                                        className="ascii-art"
+                                        style={{
+                                            fontSize: `${(fontSize * zoom) / 100}px`,
+                                            transform: `scale(${zoom / 100})`,
+                                            transformOrigin: 'top left',
+                                            width: `${(100 / zoom) * 100}%`,
+                                            color: textColor
+                                        }}
+                                    >
+                                        {asciiArt}
+                                    </pre>
+                                </div>
+                            )}
+                            
+                            {!loading && !asciiArt && (
+                                <div className="empty-state">
+                                    Upload an image to get started
+                                </div>
+                            )}
+                        </main>
+                    </div>
+
+                    {/* Hidden canvas for processing */}
+                    <canvas ref={canvasRef} style={{ display: 'none' }} />
+                </div>
+            );
+        };
+
+        ReactDOM.render(<ASCIIConverter />, document.getElementById('root'));
+    </script>
+</body>
+</html>

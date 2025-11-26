@@ -1,0 +1,573 @@
+/* ============================================
+   ASCII Art Converter - Stylesheet
+   Easy-to-edit styles organized by section
+   ============================================ */
+
+/* ============================================
+   1. ROOT VARIABLES
+   Customize these to change the entire theme
+   ============================================ */
+:root {
+    /* Color Palette */
+    --color-primary: #8C7FFA;
+    --color-primary-hover: #5F4EF6;
+    --color-secondary: #6BE2C0;
+    --color-secondary-hover: #1ECF9D;
+    --color-accent: #6BE2C0;
+    --color-accent-hover: #1ECF9D;
+    
+    /* Backgrounds */
+    --bg-main: linear-gradient(to bottom right, #030A19, #030A19);
+    --bg-panel: #ffffff10;
+    --bg-panel-light: #030A19;
+    --bg-input: #1C2330;
+    --bg-output: #000000;
+    
+    /* Text Colors */
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    --text-button: #051129;
+    
+    /* Borders */
+    --border-color: #4b5563;
+    --border-color-light: #6b7280;
+    --border-radius: 4px;
+    --border-radius-lg: 8px;
+    
+    /* Spacing */
+    --spacing-xxs: 2px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+}
+
+/* ============================================
+   2. RESET & BASE STYLES
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+  font-family: "IBM Plex Mono", monospace;
+      color: var(--text-primary);
+    background: var(--bg-main);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* ============================================
+   3. LAYOUT
+   ============================================ */
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+}
+
+.app-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.app-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+}
+
+.app-subtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: var(--spacing-lg);
+}
+
+/* Responsive: Stack on smaller screens */
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   4. PANELS (Settings & Output)
+   ============================================ */
+.panel {
+    background: var(--bg-panel);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+}
+
+.panel-header {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-lg);
+}
+
+.panel-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.panel-section:last-child {
+    margin-bottom: 0;
+}
+
+/* ============================================
+   5. UPLOAD AREA
+   ============================================ */
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--transition-normal);
+    background: rgba(0, 0, 0, 0.2);
+    margin-bottom: 16px;
+
+}
+
+.upload-area:hover {
+    border-color: var(--color-primary);
+}
+
+.upload-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--spacing-md);
+    color: var(--text-secondary);
+}
+
+.upload-text {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.upload-subtext {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.upload-input {
+    display: none;
+}
+
+/* ============================================
+   6. FORM CONTROLS (Inputs, Sliders, etc)
+   ============================================ */
+.control-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.control-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xxs);
+}
+
+/* Sliders */
+.slider {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    height: 8px;
+    border-radius: 3px;
+    background: var(--bg-input);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: var(--color-primary-hover);
+}
+
+.slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    border: none;
+}
+
+/* Dropdowns */
+.select {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    cursor: pointer;
+    margin-top: var(--spacing-xs);
+}
+
+.select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* Text Inputs */
+.text-input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-family: 'Courier New', monospace;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.text-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Checkboxes */
+.checkbox {
+    margin-right: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.checkbox-label {
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+/* Color Pickers */
+.color-picker-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.color-picker {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);}
+
+.color-picker:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.color-input {
+    flex: 1;
+}
+
+/* Helper Text */
+.helper-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+}
+
+/* ============================================
+   7. BUTTONS
+   ============================================ */
+.btn {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Button Variants */
+.btn-primary {
+    background: var(--color-primary);
+    color: var(--text-button);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    background: var(--color-secondary);
+    color: var(--text-button);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--color-secondary-hover);
+}
+
+.btn-accent {
+    background: var(--color-accent);
+    color: var(--text-button);
+}
+
+.btn-accent:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+}
+
+.btn-ghost {
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: var(--bg-panel-light);
+}
+
+/* Button Sizes */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    height: 32px;
+}
+
+/* Button Group */
+.btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+/* ============================================
+   8. COLOR PRESETS
+   ============================================ */
+.color-presets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+}
+
+.preset-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1px solid;
+}
+
+/* ============================================
+   9. OUTPUT AREA
+   ============================================ */
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.zoom-btn {
+    height: 32px;
+    padding: 0px 12px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    font-size: 1.25rem;
+}
+
+.zoom-btn:hover {
+    background: var(--bg-panel-light);
+}
+
+.zoom-value {
+    min-width: 60px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.output-display {
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    overflow: auto;
+    max-height: 600px;
+}
+
+.ascii-art {
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+    margin: 0;
+    white-space: pre;
+}
+
+/* Transparency pattern */
+.transparent-bg {
+    background-image: repeating-conic-gradient(
+        #808080 0% 25%, 
+        transparent 0% 50%
+    ) 50% / 20px 20px;
+}
+
+/* ============================================
+   10. LOADING & EMPTY STATES
+   ============================================ */
+.loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 256px;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--text-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: var(--text-secondary);
+    margin-top: var(--spacing-md);
+}
+
+.empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 256px;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   11. DIVIDERS & SECTIONS
+   ============================================ */
+.divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: var(--spacing-lg) 0;
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+/* ============================================
+   12. UTILITY CLASSES
+   ============================================ */
+.hidden {
+    display: none;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: var(--spacing-xs); }
+.mt-2 { margin-top: var(--spacing-sm); }
+.mt-3 { margin-top: var(--spacing-md); }
+.mt-4 { margin-top: var(--spacing-lg); }
+
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+
+/* ============================================
+   13. RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+    .app-container {
+        padding: var(--spacing-md);
+    }
+    
+    .app-title {
+        font-size: 2rem;
+    }
+    
+    .panel {
+        padding: var(--spacing-md);
+    }
+    
+    .output-display {
+        max-height: 100%;
+    }
+}
+
+/* ============================================
+   14. CUSTOM MODIFICATIONS
+   Add your custom styles below this line
+   ============================================ */
+
+/* Example: Change primary color
+:root {
+    --color-primary: #ef4444;
+    --color-primary-hover: #dc2626;
+}
+*/
+
+/* Example: Change panel background
+.panel {
+    background: #2d3748;
+}
+*/
+
+/* Example: Rounded everything more
+:root {
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+}
+*/
